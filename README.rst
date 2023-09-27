@@ -7,27 +7,27 @@ This is done through extending subtitles.py to accommodate a custom data structu
 
 The structure of sSRT is as follows:
 .. code:: JSON
-[
-    {
-        "lineNumber": integer,
-        "startTimestamp": integer,
-        "endTimestamp": integer,
-        "words": [
-            {
-                "text": string,
-                "font": string,
-                "color": string,
-                "size": integer
-            },
-            {
-                ...
-            }
-        ]
-    },
-    {
-        ...
-    }
-]
+    [
+        {
+            "lineNumber": integer,
+            "startTimestamp": integer,
+            "endTimestamp": integer,
+            "words": [
+                {
+                    "text": string,
+                    "font": string,
+                    "color": string,
+                    "size": integer
+                },
+                {
+                    ...
+                }
+            ]
+        },
+        {
+            ...
+        }
+    ]
 
 .. image:: https://badge.fury.io/py/moviepy.svg
     :target: PyPI_

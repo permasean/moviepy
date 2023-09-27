@@ -3,11 +3,10 @@ MoviePy
 
 This Repo is a fork by Permasean, mainly to extend the subtitling functionality to allow word-by-word font styling. 
 This is done through extending subtitles.py to accommodate a custom data structure that I derived, called styledSRT (sSRT):
-(currently only support JSON, text-based .ssrt is coming soon)
 
-The structure of sSRT is as follows:
+The structure of sSRT is as follows (currently only support JSON, text-based .ssrt is coming soon):
 
-.. code:: javascript
+.. code:: python
     [
         {
             "lineNumber": integer,

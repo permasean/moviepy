@@ -59,3 +59,15 @@ tests/media
 
 # Documentation
 docs/build/
+
+# Jupyter notebooks
+*.ipynb
+
+# Virtual Env
+venv/
+
+# JSON files
+*.json
+
+# SRT files
+*.srt

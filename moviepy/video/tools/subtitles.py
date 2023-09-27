@@ -40,20 +40,26 @@ class SubtitlesClip(VideoClip):
 
     """
 
-    def __init__(self, subtitles, make_textclip=None, encoding=None):
+    def __init__(self, subtitles, make_textclip=None, encoding=None, ssrt=False):
 
         VideoClip.__init__(self, has_constant_size=False)
 
+        # text: word-by-word styling []
+        self.word_styles = {}
+
         if not isinstance(subtitles, list):
             # `subtitles` is a string or path-like object
-            subtitles = file_to_subtitles(subtitles, encoding=encoding)
+            if ssrt:
+                [subtitles, word_styles] = ssrt_to_subtitles(subtitles, encoding=encoding)
+                self.word_styles = word_styles
+            else:
+                subtitles = file_to_subtitles(subtitles, encoding=encoding)
 
         # subtitles = [(map(cvsecs, tt),txt) for tt, txt in subtitles]
         self.subtitles = subtitles
         self.textclips = dict()
 
         if make_textclip is None:
-
             def make_textclip(txt):
                 return TextClip(
                     txt,
@@ -94,10 +100,12 @@ class SubtitlesClip(VideoClip):
 
         def make_frame(t):
             sub = add_textclip_if_none(t)
+            if sub: print('make_frame sub', sub)
             return self.textclips[sub].get_frame(t) if sub else np.array([[[0, 0, 0]]])
 
         def make_mask_frame(t):
             sub = add_textclip_if_none(t)
+            if sub: print('make_mask_frame sub', sub)
             return self.textclips[sub].mask.get_frame(t) if sub else np.array([[0]])
 
         self.make_frame = make_frame
@@ -166,6 +174,7 @@ def file_to_subtitles(filename, encoding=None):
     times_texts = []
     current_times = None
     current_text = ""
+
     with open(filename, "r", encoding=encoding) as f:
         for line in f:
             times = re.findall("([0-9]*:[0-9]*:[0-9]*,[0-9]*)", line)
@@ -176,4 +185,22 @@ def file_to_subtitles(filename, encoding=None):
                 current_times, current_text = None, ""
             elif current_times:
                 current_text += line
+
     return times_texts
+
+@convert_path_to_string("filename")
+def ssrt_to_subtitles(filename, encoding=None):
+    """Converts a sSRT (styledSRT) file into subtitles.
+
+    The returned list is of the form ``[((ta,tb),'some text'),...]``
+    and a mapping of text : word-by-word styling
+    and can be fed to SubtitlesClip.
+
+    Only works for '.json' format for the moment.
+    """
+    import json
+
+    with open(filename, "r", encoding=encoding) as f:
+        data = json.load(f)
+    
+    return

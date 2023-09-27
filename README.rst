@@ -4,7 +4,7 @@ MoviePy
 This repo is a fork maintained by `@permasean`_, mainly to extend the subtitling functionality to allow word-by-word font styling. 
 This is done through extending subtitles.py to accommodate a custom data structure that I derived, called styledSRT (sSRT):
 
-The structure of sSRT is as follows (currently only support JSON, text-based .ssrt is coming soon):
+The structure of sSRT is as follows (currently only support JSON, may consider defining .ssrt file in the future):
 
 .. codeblock:: json
     [

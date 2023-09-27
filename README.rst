@@ -6,7 +6,8 @@ This is done through extending subtitles.py to accommodate a custom data structu
 (currently only support JSON, text-based .ssrt is coming soon)
 
 The structure of sSRT is as follows:
-.. code:: python
+
+.. code:: javascript
     [
         {
             "lineNumber": integer,

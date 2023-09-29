@@ -74,6 +74,7 @@ class SubtitlesClip(VideoClip):
                         ) 
                     
                     text_clips = []
+                    current_x_offset = 0
                     for i, word in enumerate(sub_style):
                         text_clip = TextClip(
                             word["text"],
@@ -83,9 +84,19 @@ class SubtitlesClip(VideoClip):
                             stroke_color="black",
                             stroke_width=0.5,
                         )
-                        text_clips.append(text_clip)
 
-                    return CompositeVideoClip(text_clips)
+                        # text_clip.set_position((0, 0))
+
+                        if i == 0:
+                            text_clips.append(text_clip.set_position((0, "top")))
+                        else:
+                            current_x_offset += text_clips[i-1].w
+                            text_clips.append(text_clip.set_position((current_x_offset, "top")))
+
+                        if i == len(sub_style)-1:
+                            current_x_offset += text_clip.w
+
+                    return CompositeVideoClip(text_clips, size=(current_x_offset, text_clips[0].h))
             else:
                 def make_textclip(txt):
                     return TextClip(

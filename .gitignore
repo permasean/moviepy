@@ -71,3 +71,5 @@ venv/
 
 # SRT files
 *.srt
+
+*.mp3

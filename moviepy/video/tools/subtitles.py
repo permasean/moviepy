@@ -75,24 +75,24 @@ class SubtitlesClip(VideoClip):
                             # kerning
                         ) 
                     
-                    if "stroke_color" in word:
-                        stroke_color = word["stroke_color"]
-                    else:
-                        stroke_color = None
-                    
-                    if "stroke_width" in word:
-                        stroke_width = word["stroke_width"]
-                    else:
-                        stroke_width = 1
-
-                    if "bg_color" in word:
-                        bg_color = word["bg_color"]
-                    else:
-                        bg_color = "transparent"
-                    
                     text_clips = []
                     current_x_offset = 0
                     for i, word in enumerate(sub_style):
+                        if "stroke_color" in word:
+                            stroke_color = word["stroke_color"]
+                        else:
+                            stroke_color = None
+                        
+                        if "stroke_width" in word:
+                            stroke_width = word["stroke_width"]
+                        else:
+                            stroke_width = 1
+
+                        if "bg_color" in word:
+                            bg_color = word["bg_color"]
+                        else:
+                            bg_color = "transparent"
+                            
                         text_clip = TextClip(
                             word["text"],
                             font=word["font"],

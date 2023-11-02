@@ -71,6 +71,8 @@ class SubtitlesClip(VideoClip):
                             color="white",
                             stroke_color="black",
                             stroke_width=0.5,
+                            # bg_color
+                            # kerning
                         ) 
                     
                     text_clips = []
@@ -81,8 +83,11 @@ class SubtitlesClip(VideoClip):
                             font=word["font"],
                             fontsize=word["size"],
                             color=word["color"],
-                            stroke_color="black",
                             stroke_width=0.5,
+                            # stroke_color=word["stroke_color"],
+                            # stroke_width=word["stroke_width"],
+                            # bg_color=word["bg_color"],
+                            # kerning=word["kerning"]
                         )
 
                         # text_clip.set_position((0, 0))

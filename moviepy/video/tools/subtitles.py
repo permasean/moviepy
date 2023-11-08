@@ -7,6 +7,7 @@ import numpy as np
 from moviepy.decorators import convert_path_to_string
 from moviepy.tools import convert_to_seconds
 from moviepy.video.VideoClip import TextClip, VideoClip
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 
 
 class SubtitlesClip(VideoClip):
@@ -41,13 +42,19 @@ class SubtitlesClip(VideoClip):
     >>> final.write_videofile("final.mp4", fps=myvideo.fps)
 
     """
-
-    def __init__(self, subtitles, make_textclip=None, encoding=None):
+    def __init__(self, subtitles, make_textclip=None, encoding=None, ssrt=False):
         VideoClip.__init__(self, has_constant_size=False)
+
+        # text: word-by-word styling []
+        self.sub_styles = {}
 
         if not isinstance(subtitles, list):
             # `subtitles` is a string or path-like object
-            subtitles = file_to_subtitles(subtitles, encoding=encoding)
+            if ssrt:
+                [subtitles, sub_styles] = ssrt_to_subtitles(subtitles, encoding=encoding)
+                self.sub_styles = sub_styles
+            else:
+                subtitles = file_to_subtitles(subtitles, encoding=encoding)
 
         # subtitles = [(map(convert_to_seconds, times), text)
         #              for times, text in subtitles]
@@ -55,16 +62,70 @@ class SubtitlesClip(VideoClip):
         self.textclips = dict()
 
         if make_textclip is None:
+            if ssrt:
+                def make_textclip(sub_style):
+                    if isinstance(sub_style, str):
+                        return TextClip(
+                            sub_style,
+                            font="Georgia-Bold",
+                            fontsize=24,
+                            color="white",
+                            stroke_color="black",
+                            stroke_width=0.5,
+                            # bg_color
+                            # kerning
+                        ) 
+                    
+                    text_clips = []
+                    current_x_offset = 0
+                    for i, word in enumerate(sub_style):
+                        if "stroke_color" in word:
+                            stroke_color = word["stroke_color"]
+                        else:
+                            stroke_color = None
+                        
+                        if "stroke_width" in word:
+                            stroke_width = word["stroke_width"]
+                        else:
+                            stroke_width = 1
 
-            def make_textclip(txt):
-                return TextClip(
-                    txt,
-                    font="Georgia-Bold",
-                    font_size=24,
-                    color="white",
-                    stroke_color="black",
-                    stroke_width=0.5,
-                )
+                        if "bg_color" in word:
+                            bg_color = word["bg_color"]
+                        else:
+                            bg_color = "transparent"
+                            
+                        text_clip = TextClip(
+                            word["text"],
+                            font=word["font"],
+                            fontsize=word["size"],
+                            color=word["color"],
+                            stroke_color=stroke_color,
+                            stroke_width=stroke_width,
+                            bg_color=bg_color,
+                        )
+
+                        # text_clip.set_position((0, 0))
+
+                        if i == 0:
+                            text_clips.append(text_clip.set_position((0, "top")))
+                        else:
+                            current_x_offset += text_clips[i-1].w
+                            text_clips.append(text_clip.set_position((current_x_offset, "top")))
+
+                        if i == len(sub_style)-1:
+                            current_x_offset += text_clip.w
+
+                    return CompositeVideoClip(text_clips, size=(current_x_offset, text_clips[0].h))
+            else:
+                def make_textclip(txt):
+                    return TextClip(
+                        txt,
+                        font="Georgia-Bold",
+                        fontsize=24,
+                        color="white",
+                        stroke_color="black",
+                        stroke_width=0.5,
+                    )
 
         self.make_textclip = make_textclip
         self.start = 0
@@ -91,7 +152,14 @@ class SubtitlesClip(VideoClip):
                     return False
             sub = sub[0]
             if sub not in self.textclips.keys():
-                self.textclips[sub] = self.make_textclip(sub[1])
+                if ssrt:
+                    if sub in sub_styles:
+                        sub_style = sub_styles[sub]
+                        self.textclips[sub] = self.make_textclip(sub_style)
+                    else:
+                        raise Exception("Unexpected behavior exception: key does not exist in sub_styles")
+                else:
+                    self.textclips[sub] = self.make_textclip(sub[1])
 
             return sub
 
@@ -170,8 +238,9 @@ def file_to_subtitles(filename, encoding=None):
     times_texts = []
     current_times = None
     current_text = ""
-    with open(filename, "r", encoding=encoding) as file:
-        for line in file:
+
+    with open(filename, "r", encoding=encoding) as f:
+        for line in f:
             times = re.findall("([0-9]*:[0-9]*:[0-9]*,[0-9]*)", line)
             if times:
                 current_times = [convert_to_seconds(t) for t in times]
@@ -180,4 +249,48 @@ def file_to_subtitles(filename, encoding=None):
                 current_times, current_text = None, ""
             elif current_times:
                 current_text += line
+
     return times_texts
+
+@convert_path_to_string("filename")
+def ssrt_to_subtitles(filename, encoding=None):
+    """Converts a sSRT (styledSRT) file into subtitles.
+
+    The returned list is of the form ``[((ta,tb),'some text'),...]``
+    and a mapping of text : word-by-word styling
+    and can be fed to SubtitlesClip.
+
+    Only works for '.json' format for the moment.
+    """
+    import json
+
+    with open(filename, "r", encoding=encoding) as f:
+        data = json.load(f)
+    
+    subtitles = []
+    ss = {}
+
+    for line in data:
+        start_ts = line["startTimestamp"]/1000
+        end_ts = line["endTimestamp"]/1000
+    
+        line_text = ""
+        for j, word in enumerate(line["words"]):
+            if j < len(line["words"]):
+                line_text += word["text"] + " "
+        
+        sub = ((start_ts, end_ts), line_text)
+        subtitles.append(sub)
+
+        for j, word in enumerate(line["words"]):
+            if j < len(line["words"]):
+                word["text"] += " "
+
+            if sub not in ss:
+                ss[sub] = [word]
+            elif sub in ss:
+                sub_ws = ss[sub]
+                sub_ws.append(word)
+                ss[sub] = sub_ws
+
+    return [subtitles, ss]

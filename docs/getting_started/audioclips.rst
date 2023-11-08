@@ -5,7 +5,7 @@ Audio in MoviePy
 
 This section shows how to use MoviePy to create and edit audio clips.
 
-Note that when you cut, mix or concatenate video clips in MoviePy the audio is automatically handled and you need to worry about it. This section is of interest if you just want to edit audiofiles or you want custom audio clips for your videos.
+Note that when you cut, mix or concatenate video clips in MoviePy the audio is automatically handled and you don't need to worry about it. This section is of interest if you just want to edit audiofiles or you want custom audio clips for your videos.
 
 What audioclips are made of
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -18,7 +18,7 @@ Creating a new audio clip
 
 Audio clips can be created from an audio file or from the soundtrack of a video file ::
 
-    from moviepy.editor import *
+    from moviepy import *
     audioclip = AudioFileClip("some_audiofile.mp3")
     audioclip = AudioFileClip("some_video.avi")
 
@@ -37,4 +37,4 @@ Exporting and previewing audio clips
 
 You can also export assign an audio clip as the soundtrack of a video clip with ::
 
-    videoclip2 = videoclip.set_audio(my_audioclip)
+    videoclip2 = videoclip.with_audio(my_audioclip)

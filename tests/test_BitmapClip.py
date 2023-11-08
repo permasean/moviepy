@@ -1,5 +1,8 @@
-import pytest
+"""BitmapClip tests."""
+
 import numpy as np
+
+import pytest
 
 from moviepy.video.VideoClip import BitmapClip
 
@@ -43,6 +46,16 @@ def test_setting_duration():
 
     assert clip.fps == 1
     assert clip.duration == 6
+
+
+def test_to_bitmap():
+    bitmap = [["R"], ["R"], ["B"], ["B"], ["G"], ["G"]]
+    clip1 = BitmapClip(bitmap, fps=0.345)
+    clip2 = BitmapClip(bitmap, fps=1)
+    clip3 = BitmapClip(bitmap, fps=3.12345)
+    assert bitmap == clip1.to_bitmap()
+    assert bitmap == clip2.to_bitmap()
+    assert bitmap == clip3.to_bitmap()
 
 
 if __name__ == "__main__":
